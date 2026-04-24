@@ -1,0 +1,99 @@
+# =============================================================================
+# DigitalOcean App Platform manifest for Constellation Bot
+#
+# This file defines how DO deploys the bot. On first setup, connect this repo
+# to a new App in the DO dashboard. DO reads this file, creates the Worker
+# component, and auto-deploys on every push to main.
+#
+# Secrets (marked `type: SECRET` below) must be set via the DO dashboard UI
+# after the app is created — DO never reads them from this file.
+# =============================================================================
+
+name: constellation-bot
+region: nyc
+
+workers:
+  - name: bot
+    # ---- Source ----
+    github:
+      repo: pennydoesdev/ConstellationBot
+      branch: main
+      deploy_on_push: true
+    source_dir: /
+
+    # ---- Build + run ----
+    environment_slug: node-js
+    build_command: npm ci && npm run build
+    run_command: node dist/index.js
+
+    # ---- Sizing ----
+    # basic-xs = 1 GB RAM, 1 shared vCPU, $12/mo. Room to grow.
+    # Downgrade to basic-xxs ($5/mo, 512 MB) only if budget is tight and bot
+    # stays under a few hundred guild members.
+    instance_size_slug: basic-xs
+    instance_count: 1
+
+    # ---- Environment variables ----
+    # Non-secrets inline here. Secrets (`type: SECRET`) must be added via the
+    # DO dashboard after first deploy — they won't work if left blank here.
+    envs:
+      - key: NODE_ENV
+        scope: RUN_TIME
+        value: production
+
+      - key: LOG_LEVEL
+        scope: RUN_TIME
+        value: info
+
+      # Discord
+      - key: DISCORD_TOKEN
+        scope: RUN_TIME
+        type: SECRET
+      - key: DISCORD_APP_ID
+        scope: RUN_TIME
+        value: "1497214953982005259"
+      - key: DISCORD_PUBLIC_KEY
+        scope: RUN_TIME
+        value: "41b71b0dd559f2a1e56211d89f1831064c708f74b1a92d7bcdfa38f123673711"
+      - key: DISCORD_GUILD_ID
+        scope: RUN_TIME
+        type: SECRET
+
+      # Database (Supabase)
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        type: SECRET
+      - key: DATABASE_URL_DIRECT
+        scope: RUN_TIME
+        type: SECRET
+      - key: SUPABASE_URL
+        scope: RUN_TIME
+        value: "https://pffpqyicecnyuezennoq.supabase.co"
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        scope: RUN_TIME
+        type: SECRET
+
+      # Cloudflare R2 (message archive)
+      - key: R2_ACCOUNT_ID
+        scope: RUN_TIME
+        value: "e9647a01787b681c8b116ffc2649e12c"
+      - key: R2_ACCESS_KEY_ID
+        scope: RUN_TIME
+        type: SECRET
+      - key: R2_SECRET_ACCESS_KEY
+        scope: RUN_TIME
+        type: SECRET
+      - key: R2_BUCKET
+        scope: RUN_TIME
+        value: "constellation-discord-archive"
+      - key: R2_ENDPOINT
+        scope: RUN_TIME
+        value: "https://e9647a01787b681c8b116ffc2649e12c.r2.cloudflarestorage.com"
+
+      # AI inference
+      - key: FEATHERLESS_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+      - key: HF_TOKEN_BOT
+        scope: RUN_TIME
+        type: SECRET
