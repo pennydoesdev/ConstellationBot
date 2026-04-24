@@ -36,14 +36,15 @@ client.on(Events.InteractionCreate, async (interaction) => {
     await command.execute(interaction);
   } catch (err) {
     console.error(`Error executing /${interaction.commandName}:`, err);
-    const errorReply = {
-      content: 'Something went wrong running that command. Staff have been notified.',
-      flags: MessageFlags.Ephemeral,
-    };
+    const errorContent = 'Something went wrong running that command. Staff have been notified.';
     if (interaction.replied || interaction.deferred) {
-      await interaction.followUp(errorReply).catch((e) => console.error('followUp failed:', e));
+      await interaction
+        .followUp({ content: errorContent, flags: MessageFlags.Ephemeral })
+        .catch((e) => console.error('followUp failed:', e));
     } else {
-      await interaction.reply(errorReply).catch((e) => console.error('reply failed:', e));
+      await interaction
+        .reply({ content: errorContent, flags: MessageFlags.Ephemeral })
+        .catch((e) => console.error('reply failed:', e));
     }
   }
 });
